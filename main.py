@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import time
-
+import os
+import numpy as np
 
 # import the stepper library
 from RpiMotorLib import RpiMotorLib
@@ -8,7 +9,9 @@ from RpiMotorLib import RpiMotorLib
 # import Satellite libraries
 from skyfield.api import load, wgs84
 from datetime import datetime
-from tracking import getTimescale
+import pandas as pd
+from tracking import getTimescale, saveLocation
+
 
 GpioPins = [18, 23, 24, 25]
 
@@ -27,9 +30,17 @@ print(satellite)
 
 # getting the current time and calculating it in the timescale
 ts = load.timescale()
-while True:
-	print(getTimescale(ts, datetime.utcnow()))
-	time.sleep(1)
+t1 = getTimescale(ts, datetime.utcnow())
+
+if os.path.exists('location.csv'):
+	location = pd.read_csv('location.csv')
+	print(location)
+else:
+	name = input("Name of the location? ")
+	lat = input("Latitude of your location? ")
+	lon = input("Longitude of your location? ")
+	elv = input("What is the elevation of your location? ")
+	saveLocation(name, lat, lon, elv)
 
 # call the function pass the parameters
 #mymotortest.motor_run(GpioPins , 0.005, 512, False, False, "full", .05)
