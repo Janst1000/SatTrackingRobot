@@ -1,4 +1,5 @@
 import csv
+from skyfield.api import wgs84
 
 def getTimescale(ts, now):
 	year = int(now.strftime("%Y"))
@@ -19,3 +20,16 @@ def saveLocation(name, lat, lon):
 
 		# write a row to the csv file
 		writer.writerow(row)
+
+def loadLocation():
+	# open file to read from
+	with open('location.csv', 'r') as f:
+		reader = csv.reader(f)
+		#reads the first line of the location csv file
+		row = next(reader)
+	# saving the read data into variables and returning it as a usuable
+	# wgs84 location
+	lat = float(row[1])
+	lon = float(row[2])
+	elv = float(row[3])
+	return wgs84.latlon(lat, lon, elv)
