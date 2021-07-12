@@ -10,13 +10,13 @@ from RpiMotorLib import RpiMotorLib
 from skyfield.api import load, wgs84
 from datetime import datetime
 #import pandas as pd
-from tracking import getTimescale, saveLocation, loadLocation
+from tracking import getTimescale, saveLocation, loadLocation, satLocation
 
 
 GpioPins = [18, 23, 24, 25]
 
 # Declare an named instance of class pass a name and motor type
-mymotortest = RpiMotorLib.BYJMotor("Azimuth", "28BYJ")
+az_mot = RpiMotorLib.BYJMotor("Azimuth", "28BYJ")
 
 # loading the latest TLE data
 stations_url = 'http://celestrak.com/NORAD/elements/stations.txt'
@@ -46,9 +46,38 @@ else:
 print("Current Location is:")
 print(location)
 
-# call the function pass the parameters
-#mymotortest.motor_run(GpioPins , 0.005, 512, False, False, "full", .05)
-#mymotortest.motor_run(GpioPins , 0.005, 512, True, False, "half", .05)
+# initializing motor angles
+az_mot_ang = 0
+alt_mot_ang = 0
+
+# Definging function to drive to specific angle
+def driveAz(motor, pins, des_ang, cur_ang):
+	req_steps = (des_ang - cur_ang) * 1.4222
+	motor.motor_run(pins, 0.005, req_steps, False, False, "half", 0.05)
+	cur_ang = des_ang
+	
+	return cur_ang
+
+while True:
+	#we get the current time in the approriate timescale
+	t1 = getTimescale(ts, datetime.utcnow())
+	#we get the satellites location
+	alt, az, height = satLocation(satellite, location, t1)
+
+	# Printing the satellites location
+	print('Altitude:', alt)
+	print('Azimuth:', az)
+	print('Height: {:.1f} km'.format(height.km))
+	print("Azimuth motor angle:" ,az_mot_ang)
+
+	# Driving the motors to the desired angle
+	az_mot_ang = driveAz(az_mot, GpioPins, az, az_mot_ang)
+
+	# Waiting 1 second before repeating and clearing the screen
+	time.sleep(1)
+	os.system('clear')
+
+
 
 # good practise to cleanup GPIO at some point before exit
 GPIO.cleanup()

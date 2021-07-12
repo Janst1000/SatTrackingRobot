@@ -33,3 +33,24 @@ def loadLocation():
 	lon = float(row[2])
 	elv = float(row[3])
 	return wgs84.latlon(lat, lon, elv)
+
+def satLocation(sat, loc, t):
+	difference = sat - loc
+	topocentric = difference.at(t)
+	alt, az, height = topocentric.altaz()
+
+	if alt.degrees > 0:
+		print('The ISS is above the horizon')
+
+	# Here I am converting the Angle to a string
+	alt_str = str(alt)
+	az_str = str(az)
+	# Then I delete everything after the 'deg'
+	alt_head, sep, alt_end = alt_str.partition('deg')
+	az_head, sep, az_end = az_str.partition('deg')
+	# And then we convert to integer to make it easier to drive the motors
+	alt_head = int(alt_head)
+	az_head = int(az_head)
+	
+	return alt_head, az_head, height
+
